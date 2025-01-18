@@ -1,6 +1,7 @@
 const express = require("express");
 const handleDbConnection = require("./connection");
 const authRouter = require("./routes/auth");
+const habitRouter = require("./routes/habit");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
   return res.send("Welcome to my habit tracking app!");
 });
 app.use("/auth", authRouter);
+app.use("/habit", habitRouter);
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

@@ -8,20 +8,36 @@ const habitSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 50,
     },
+    startDate: {
+      type: String,
+      required: true,
+    },
     category: {
       type: String,
       required: true,
-      unique: true,
-      maxlength: 255,
     },
     target: {
-      type: Number,
+      quantity: {
+        type: Number,
+        required: true,
+      },
+      unit: {
+        type: String,
+        required: true,
+      },
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-    unit: {
-      type: String,
-      required: true,
-    },
+    history: [
+      {
+        date: Date,
+        status: String,
+        quantity: Number,
+      },
+    ],
   },
   { timestamps: true }
 );

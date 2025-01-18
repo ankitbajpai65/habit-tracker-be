@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const verifyToken = require("../middleware/auth.js/verifyToken");
-const { createhabit } = require("../controllers/habit");
+const { createHabit, fetchHabits } = require("../controllers/habit");
+const verifyToken = require("../middleware/verifyToken");
 
-router.post("/create", createhabit);
+router.get("/getAll", verifyToken, fetchHabits);
+router.post("/create", verifyToken, createHabit);
 
 module.exports = router;
