@@ -33,7 +33,7 @@ const habitSchema = new mongoose.Schema(
     },
     history: [
       {
-        date: Date,
+        date: String,
         status: String,
         quantity: Number,
       },
