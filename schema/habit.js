@@ -38,6 +38,10 @@ const habitSchema = new mongoose.Schema(
         quantity: Number,
       },
     ],
+    streak: {
+      current: Number,
+      longest: Number,
+    },
   },
   { timestamps: true }
 );
