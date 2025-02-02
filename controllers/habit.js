@@ -51,7 +51,7 @@ const createHabit = async (req, res) => {
         error: "All fields are required!",
       });
     }
-    const habit = await HabitModel.create({
+    await HabitModel.create({
       userId: user._id,
       habitName,
       startDate,
@@ -157,9 +157,7 @@ const updateHabit = async (req, res) => {
     if (todayEntry) {
       todayEntry.quantity = updatedQuantity;
       todayEntry.status =
-        todayEntry.quantity >= habit.target.quantity
-          ? "completed"
-          : "incomplete";
+        updatedQuantity >= habit.target.quantity ? "completed" : "incomplete";
     } else {
       habit.history.push({
         date: today,
@@ -169,7 +167,47 @@ const updateHabit = async (req, res) => {
       });
     }
 
-    // Save the updated habit
+    // Sort history by date
+    habit.history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Update Streaks
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let streak = 0;
+
+    for (let i = 0; i < habit.history.length; i++) {
+      const entry = habit.history[i];
+
+      if (entry.status === "completed") {
+        streak++;
+
+        // Check if this is the last entry and if it's part of the current streak
+        if (
+          i === habit.history.length - 1 ||
+          new Date(habit.history[i + 1]?.date).getTime() -
+            new Date(entry.date).getTime() !==
+            86400000
+        ) {
+          longestStreak = Math.max(longestStreak, streak);
+          if (
+            new Date(entry.date).getTime() >=
+            new Date(today).getTime() - 86400000
+          ) {
+            currentStreak = streak;
+          }
+          streak = 0; // Reset streak if next date is not consecutive
+        }
+      } else {
+        longestStreak = Math.max(longestStreak, streak);
+        streak = 0;
+      }
+    }
+
+    // Update habit object
+    habit.streak.current = currentStreak;
+    habit.streak.longest = longestStreak;
+
+    // Save updated habit
     const updatedHabit = await habit.save();
 
     return res.status(200).json({
