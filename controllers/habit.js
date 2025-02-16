@@ -2,16 +2,39 @@ const HabitModel = require("../schema/habit");
 
 const fetchHabits = async (req, res) => {
   try {
-    const habit = await HabitModel.find({});
+    const userId = req.user._id;
+
+    // const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA");
+
+    const habits = await HabitModel.find({ userId });
+
+    for (const habit of habits) {
+      const history = habit.history;
+      const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+
+      if (!lastEntry || lastEntry.date !== today) {
+        // If the last entry is not today, add new one
+        habit.history.push({
+          date: today,
+          status: "incomplete",
+          quantity: 0,
+        });
+
+        // Save updated habit
+        await habit.save();
+      }
+    }
+
     return res.status(200).json({
       status: "ok",
-      data: habit.reverse(),
+      data: habits.reverse(),
     });
   } catch (error) {
     console.log("Error in fetching habits:", error);
     return res.status(400).json({
       status: "error",
-      error: error,
+      error: error.message,
     });
   }
 };
@@ -51,7 +74,7 @@ const createHabit = async (req, res) => {
         error: "All fields are required!",
       });
     }
-    await HabitModel.create({
+    const habit = await HabitModel.create({
       userId: user._id,
       habitName,
       startDate,
@@ -60,7 +83,7 @@ const createHabit = async (req, res) => {
       history: [
         {
           date: startDate,
-          status: "missed",
+          status: "incomplete",
           quantity: 0,
         },
       ],
@@ -72,7 +95,8 @@ const createHabit = async (req, res) => {
 
     return res.status(201).json({
       status: "ok",
-      error: "Habit is added!",
+      message: "Habit is added!",
+      habit: habit,
     });
   } catch (error) {
     console.log("Error in creating habit:", error);
@@ -122,7 +146,6 @@ const editHabit = async (req, res) => {
       message: "Habit updated successfully!",
     });
   } catch (error) {
-    // console.log("Error in editing habit:", error);
     return res.status(400).json({
       status: "error",
       error: error,
