@@ -38,36 +38,23 @@ const handleUserSignup = async (req, res) => {
 
 const handleUserLogin = async (req, res) => {
   const { email, password } = req.body;
-  // console.log({ email, password });
-
   try {
     const user = await UserModel.findOne({ email });
-    // console.log(user);
-
     if (!user) {
       return res.status(404).json({ status: "error", error: "User not found" });
     }
 
-    // if (user && (await bcrypt.compare(password, user.password))) {
     if (user.password === password) {
       const token = jwt.sign({ email }, process.env.TOKEN_KEY, {
         expiresIn: "24h",
       });
       user.token = token;
 
-      //   res.cookie("access_token", token, {
-      //     // domain: process.env.BASE_URL,
-      //     //   path: "/",
-      //     //   sameSite: "none",
-      //     httpOnly: true,
-      //     secure: true,
-      //     expire: Date.now() + 2592000000,
-      //   });
-
       return res
         .cookie("access_token", token, {
           httpOnly: true,
           secure: true,
+          sameSite: "none",
           expire: Date.now() + 2592000000,
         })
         .status(200)
@@ -95,8 +82,7 @@ const handleUserLogout = (req, res) => {
   try {
     return res
       .clearCookie("access_token", {
-        // path: "/",
-        // sameSite: "none",
+        sameSite: "none",
         httpOnly: true,
         secure: true,
         expire: Date.now() + 2592000000,
